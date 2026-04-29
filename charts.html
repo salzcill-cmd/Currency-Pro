@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency Pro - Analitik & Grafik</title>
+  
+  <meta name="description" content="Grafik historis mata uang dan analitik">
+  <link rel="preconnect" href="https://api.exchangerate-api.com">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- Chart.js + Zoom Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.x.x/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.x.x/dist/chartjs-plugin-zoom.min.js"></script>
+  
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen font-sans transition-colors duration-300">
+  
+  <!-- Header -->
+  <header x-data="{ mobileMenu: false }" class="glass sticky top-0 z-50 border-b border-white/20 dark:border-gray-700/50">
+    <div class="container mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <a href="index.html" class="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Currency Pro
+          </a>
+        </div>
+        
+        <nav class="hidden md:flex items-center space-x-6">
+          <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">Konverter</a>
+          <a href="charts.html" class="text-indigo-600 dark:text-indigo-400 font-semibold">Grafik</a>
+          <a href="compare.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">Bandingkan</a>
+        </nav>
+        
+        <div class="flex items-center space-x-4">
+          <button @click="$store.app.toggleTheme()" class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition">
+            <i class="fas" :class="$store.app.theme === 'dark' ? 'fa-sun text-yellow-400' : 'fa-moon text-indigo-600'"></i>
+          </button>
+          <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 rounded-xl hover:bg-white/50">
+            <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Mobile Menu -->
+      <div x-show="mobileMenu" x-transition class="md:hidden mt-4 pb-4 space-y-2">
+        <a href="index.html" class="block py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Konverter</a>
+        <a href="charts.html" class="block py-2 px-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">Grafik</a>
+        <a href="compare.html" class="block py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Bandingkan</a>
+      </div>
+    </div>
+  </header>
+
+  <main x-data="{ timeRange: '1B', baseCurrency: 'IDR', selectedCurrencies: ['USD', 'EUR', 'SGD'], showCalendar: false }" class="container mx-auto px-4 py-8 page-enter">
+    
+    <!-- Title -->
+    <div class="text-center mb-12" data-aos="fade-down">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 dark:text-white mb-4">
+        Analitik & Grafik
+      </h1>
+      <p class="text-gray-500 dark:text-gray-400 text-lg">
+        Lacak tren mata uang dengan grafik interaktif
+      </p>
+    </div>
+    
+    <!-- Time Range Selector -->
+    <div class="flex justify-center mb-8" data-aos="fade-up">
+      <div class="glass rounded-2xl p-2 inline-flex space-x-2">
+        <template x-for="range in [{label: '1B', value: '1M'}, {label: '3B', value: '3M'}, {label: '6B', value: '6M'}, {label: '1T', value: '1Y'}, {label: 'Semua', value: 'ALL'}]">
+          <button @click="timeRange = range.value" 
+                  :class="timeRange === range.value ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-white/50'"
+                  class="px-6 py-2 rounded-xl font-semibold transition">
+            <span x-text="range.label"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+    
+    <!-- Main Chart -->
+    <div class="max-w-6xl mx-auto mb-12" data-aos="zoom-in">
+      <div class="glass rounded-3xl p-6 md:p-8">
+        <canvas id="mainChart" class="w-full" style="height: 400px;"></canvas>
+      </div>
+    </div>
+    
+    <!-- Currency Selector for Chart -->
+    <div class="max-w-6xl mx-auto mb-12" data-aos="fade-up">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Pilih Mata Uang untuk Dibandingkan (vs IDR)</h3>
+        <div class="flex flex-wrap gap-3">
+          <template x-for="currency in ['USD', 'EUR', 'SGD', 'MYR', 'CNY', 'JPY', 'AUD', 'GBP', 'KRW', 'INR']">
+            <button @click="toggleCurrency(currency)" 
+                    :class="selectedCurrencies.includes(currency) ? 'bg-indigo-600 text-white' : 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300'"
+                    class="px-4 py-2 rounded-xl font-semibold transition hover:scale-105">
+              <span x-text="currency + '/IDR'"></span>
+            </button>
+          </template>
+        </div>
+        <p class="text-sm text-gray-500 mt-3">Menampilkan grafik perbandingan terhadap IDR (Rupiah Indonesia)</p>
+      </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 max-w-6xl mx-auto">
+      <template x-for="stat in stats">
+        <div class="glass rounded-2xl p-6" data-aos="fade-up" :data-aos-delay="stat.delay">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-gray-500" x-text="stat.label"></span>
+            <i :class="stat.icon" class="text-indigo-600"></i>
+          </div>
+          <div class="text-2xl font-bold text-gray-800 dark:text-white font-mono" x-text="stat.value"></div>
+          <div class="flex items-center mt-2 text-sm" :class="stat.trend === 'up' ? 'text-green-500' : 'text-red-500'">
+            <i class="fas" :class="stat.trend === 'up' ? 'fa-arrow-up' : 'fa-arrow-down'"></i>
+            <span class="ml-1" x-text="stat.change"></span>
+          </div>
+        </div>
+      </template>
+    </div>
+    
+    <!-- Calendar Widget -->
+    <div class="max-w-6xl mx-auto mb-12" data-aos="fade-up">
+      <div class="glass rounded-3xl p-6 md:p-8">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Kalender Kurs Historis</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <input type="date" x-model="selectedDate" @change="loadHistoricalRate()"
+                   class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 dark:text-white">
+          </div>
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-6" x-show="historicalRate !== null">
+            <p class="text-sm text-gray-500 mb-2">Kurs pada <span x-text="selectedDate"></span></p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-white font-mono" x-text="historicalRate ? historicalRate.toFixed(4) : '-'"></p>
+            <p class="text-sm mt-2" :class="rateChange >= 0 ? 'text-green-500' : 'text-red-500'">
+              <span x-text="rateChange >= 0 ? '+' : ''"></span><span x-text="rateChange.toFixed(2)"></span>% vs hari ini
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Technical Indicators -->
+    <div class="max-w-6xl mx-auto" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-8 text-center">Indikator Teknis</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6">
+          <h4 class="font-bold text-gray-800 dark:text-white mb-3">SMA (7-hari)</h4>
+          <p class="text-3xl font-bold text-indigo-600 font-mono">1.2345</p>
+          <p class="text-sm text-gray-500 mt-2">Rata-rata Bergerak Sederhana</p>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h4 class="font-bold text-gray-800 dark:text-white mb-3">SMA (30-hari)</h4>
+          <p class="text-3xl font-bold text-purple-600 font-mono">1.2280</p>
+          <p class="text-sm text-gray-500 mt-2">Rata-rata Bergerak Sederhana</p>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h4 class="font-bold text-gray-800 dark:text-white mb-3">Volatilitas</h4>
+          <p class="text-3xl font-bold text-pink-600 font-mono">2.34%</p>
+          <p class="text-sm text-gray-500 mt-2">Volatilitas 30-hari</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+      <p>Currency Pro &copy; 2026 | Dasbor Analitik</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/charts.js"></script>
+  <script>
+    AOS.init({ duration: 800, once: true });
+    
+    // Initialize charts page
+    document.addEventListener('alpine:init', () => {
+      Alpine.store('charts', {
+        chart: null,
+        stats: [
+          { label: 'Highest (7d)', value: '1.2456', icon: 'fa-arrow-up', trend: 'up', change: '+2.3%', delay: '0' },
+          { label: 'Lowest (7d)', value: '1.2100', icon: 'fa-arrow-down', trend: 'down', change: '-1.8%', delay: '100' },
+          { label: 'Average (7d)', value: '1.2300', icon: 'fa-chart-line', trend: 'up', change: '+0.5%', delay: '200' },
+          { label: 'Volatility', value: '2.34%', icon: 'fa-wave-square', trend: 'down', change: '-0.3%', delay: '300' }
+        ],
+        selectedDate: new Date().toISOString().split('T')[0],
+        historicalRate: null,
+        rateChange: 0,
+        
+        init() {
+          this.initChart();
+        },
+        
+        initChart() {
+          const ctx = document.getElementById('mainChart').getContext('2d');
+          
+          // Generate mock data
+          const labels = Array.from({length: 30}, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (29 - i));
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          });
+          
+          const datasets = [
+            { label: 'EUR', data: Array.from({length: 30}, () => 0.85 + Math.random() * 0.1), borderColor: '#6366f1' },
+            { label: 'GBP', data: Array.from({length: 30}, () => 0.75 + Math.random() * 0.1), borderColor: '#8b5cf6' },
+            { label: 'JPY', data: Array.from({length: 30}, () => 110 + Math.random() * 10), borderColor: '#ec4899' }
+          ];
+          
+          this.chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                zoom: {
+                  zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                  pan: { enabled: true, mode: 'x' }
+                }
+              },
+              scales: {
+                y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+              }
+            }
+          });
+        },
+        
+        toggleCurrency(code) {
+          const index = this.selectedCurrencies.indexOf(code);
+          if (index > -1) {
+            this.selectedCurrencies.splice(index, 1);
+          } else {
+            this.selectedCurrencies.push(code);
+          }
+          this.updateChart();
+        },
+        
+        updateChart() {
+          // Update chart datasets based on selected currencies
+          console.log('Updating chart with:', this.selectedCurrencies);
+        },
+        
+        loadHistoricalRate() {
+          // Mock historical rate
+          this.historicalRate = 1.22 + Math.random() * 0.05;
+          this.rateChange = (Math.random() - 0.5) * 10;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
