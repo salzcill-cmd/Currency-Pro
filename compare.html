@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency Pro - Bandingkan Mata Uang</title>
+  
+  <meta name="description" content="Bandingkan beberapa mata uang secara bersamaan">
+  <link rel="preconnect" href="https://api.exchangerate-api.com">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>">
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen font-sans transition-colors duration-300">
+  
+  <!-- Header -->
+  <header x-data="{ mobileMenu: false }" class="glass sticky top-0 z-50 border-b border-white/20 dark:border-gray-700/50">
+    <div class="container mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <a href="index.html" class="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Currency Pro
+        </a>
+        
+        <nav class="hidden md:flex items-center space-x-6">
+          <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">Konverter</a>
+          <a href="charts.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">Grafik</a>
+          <a href="compare.html" class="text-indigo-600 dark:text-indigo-400 font-semibold">Bandingkan</a>
+        </nav>
+        
+        <div class="flex items-center space-x-4">
+          <button @click="$store.app.toggleTheme()" class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition">
+            <i class="fas" :class="$store.app.theme === 'dark' ? 'fa-sun text-yellow-400' : 'fa-moon text-indigo-600'"></i>
+          </button>
+          <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 rounded-xl hover:bg-white/50">
+            <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Mobile Menu -->
+      <div x-show="mobileMenu" x-transition class="md:hidden mt-4 pb-4 space-y-2">
+        <a href="index.html" class="block py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Konverter</a>
+        <a href="charts.html" class="block py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Grafik</a>
+        <a href="compare.html" class="block py-2 px-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">Bandingkan</a>
+      </div>
+    </div>
+  </header>
+
+  <main x-data="{ currencies: ['IDR', 'USD', 'EUR'], amounts: [1000000, 1000, 1000] }" class="container mx-auto px-4 py-8 page-enter">
+    
+    <!-- Title -->
+    <div class="text-center mb-12" data-aos="fade-down">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 dark:text-white mb-4">
+        Bandingkan Mata Uang
+      </h1>
+      <p class="text-gray-500 dark:text-gray-400 text-lg">
+        Bandingkan hingga 3 mata uang secara bersamaan
+      </p>
+    </div>
+    
+    <!-- Live Price Ticker -->
+    <div class="glass rounded-2xl p-4 mb-12 overflow-hidden" data-aos="fade-up">
+      <p class="text-sm text-gray-500 mb-2 text-center">Kurs Populer vs IDR (Simulasi)</p>
+      <div class="ticker-wrapper">
+        <div class="ticker-content">
+          <template x-for="i in 2">
+            <div class="inline-flex space-x-8 px-4">
+              <template x-for="currency in ['USD', 'EUR', 'SGD', 'MYR', 'JPY', 'CNY', 'AUD', 'GBP', 'KRW', 'INR']">
+                <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/30 dark:bg-gray-800/30">
+                  <img :src="'https://flagsapi.com/' + $store.app.getCountryCode(currency) + '/flat/64.png'" class="w-6 h-6 rounded-full">
+                  <span class="font-bold" x-text="currency + '/IDR'"></span>
+                  <span class="font-mono" :class="Math.random() > 0.5 ? 'text-green-500' : 'text-red-500'"
+                        x-text="(Math.random() > 0.5 ? '+' : '-') + (Math.random() * 500).toFixed(2)"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Triangle Converter -->
+    <div class="max-w-6xl mx-auto mb-16" data-aos="zoom-in">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-8 text-center">Konverter Segitiga (Termasuk IDR)</h2>
+      <p class="text-center text-gray-500 mb-8">Konversi berantai: A → B → C → A</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Currency A -->
+        <div class="glass rounded-3xl p-6 border-t-4 border-indigo-500">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-800 dark:text-white">Mata Uang A (IDR)</h3>
+            <select x-model="currencies[0]" class="px-3 py-1 rounded-lg bg-white/50 dark:bg-gray-800/50 border dark:border-gray-600 dark:text-white">
+              <template x-for="code in Object.keys($store.app.rates)">
+                <option :value="code" x-text="code"></option>
+              </template>
+            </select>
+          </div>
+          <input type="number" x-model="amounts[0]" class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border dark:border-gray-600 dark:text-white font-mono text-2xl font-bold">
+          <div class="mt-4 text-sm text-gray-500">
+            <span x-text="$store.app.formatNumber(amounts[0] * ($store.app.rates[currencies[1]] / $store.app.rates[currencies[0]]))"></span>
+            <span x-text="' ' + currencies[1]"></span>
+          </div>
+        </div>
+        
+        <!-- Currency B -->
+        <div class="glass rounded-3xl p-6 border-t-4 border-purple-500">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-800 dark:text-white">Mata Uang B (USD)</h3>
+            <select x-model="currencies[1]" class="px-3 py-1 rounded-lg bg-white/50 dark:bg-gray-800/50 border dark:border-gray-600 dark:text-white">
+              <template x-for="code in Object.keys($store.app.rates)">
+                <option :value="code" x-text="code"></option>
+              </template>
+            </select>
+          </div>
+          <input type="number" x-model="amounts[1]" class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border dark:border-gray-600 dark:text-white font-mono text-2xl font-bold">
+          <div class="mt-4 text-sm text-gray-500">
+            <span x-text="$store.app.formatNumber(amounts[1] * ($store.app.rates[currencies[2]] / $store.app.rates[currencies[1]]))"></span>
+            <span x-text="' ' + currencies[2]"></span>
+          </div>
+        </div>
+        
+        <!-- Currency C -->
+        <div class="glass rounded-3xl p-6 border-t-4 border-pink-500">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-800 dark:text-white">Mata Uang C (EUR)</h3>
+            <select x-model="currencies[2]" class="px-3 py-1 rounded-lg bg-white/50 dark:bg-gray-800/50 border dark:border-gray-600 dark:text-white">
+              <template x-for="code in Object.keys($store.app.rates)">
+                <option :value="code" x-text="code"></option>
+              </template>
+            </select>
+          </div>
+          <input type="number" x-model="amounts[2]" class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border dark:border-gray-600 dark:text-white font-mono text-2xl font-bold">
+          <div class="mt-4 text-sm text-gray-500">
+            <span x-text="$store.app.formatNumber(amounts[2] * ($store.app.rates[currencies[0]] / $store.app.rates[currencies[2]]))"></span>
+            <span x-text="' ' + currencies[0]"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Comparison Table -->
+    <div class="max-w-6xl mx-auto mb-16" data-aos="fade-up">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-8">Mata Uang Populer</h2>
+      
+      <div class="glass rounded-3xl overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-white/30 dark:bg-gray-800/30">
+            <tr>
+              <th class="px-6 py-4 text-left text-sm font-bold text-gray-600 dark:text-gray-300">Mata Uang</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-600 dark:text-gray-300">Kurs Beli</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-600 dark:text-gray-300">Kurs Jual</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-600 dark:text-gray-300">Ubah 24j</th>
+              <th class="px-6 py-4 text-right text-sm font-bold text-gray-600 dark:text-gray-300">Mingguan</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <template x-for="currency in ['EUR', 'GBP', 'JPY', 'CNY', 'SGD', 'AUD', 'CAD', 'CHF', 'KRW', 'INR']">
+              <tr class="hover:bg-white/20 dark:hover:bg-gray-800/20 transition">
+                <td class="px-6 py-4">
+                  <div class="flex items-center space-x-3">
+                    <img :src="'https://flagsapi.com/' + $store.app.getCountryCode(currency) + '/flat/64.png'" class="w-8 h-8 rounded-full">
+                    <div>
+                      <div class="font-bold text-gray-800 dark:text-white" x-text="currency"></div>
+                      <div class="text-xs text-gray-500" x-text="$store.app.getCurrencyName(currency)"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-right font-mono font-bold text-gray-800 dark:text-white" 
+                    x-text="$store.app.rates[currency] ? ($store.app.rates[currency] * 0.999).toFixed(4) : '-'"></td>
+                <td class="px-6 py-4 text-right font-mono font-bold text-gray-800 dark:text-white"
+                    x-text="$store.app.rates[currency] ? ($store.app.rates[currency] * 1.001).toFixed(4) : '-'"></td>
+                <td class="px-6 py-4 text-right">
+                  <span class="font-mono font-bold" :class="Math.random() > 0.5 ? 'text-green-500' : 'text-red-500'"
+                        x-text="(Math.random() > 0.5 ? '+' : '-') + (Math.random() * 2).toFixed(2) + '%'"></span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full ml-auto">
+                    <div class="h-full bg-indigo-600 rounded-full" :style="'width: ' + (Math.random() * 100) + '%'"></div>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Ranking Section -->
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8" data-aos="fade-up">
+      <!-- Top 5 Strongest -->
+      <div class="glass rounded-3xl p-6">
+        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+          <i class="fas fa-trophy text-yellow-500 mr-2"></i> Mata Uang Terkuat
+        </h3>
+        <div class="space-y-4">
+          <template x-for="(currency, index) in ['CHF', 'USD', 'EUR', 'GBP', 'SGD']">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/30 dark:bg-gray-800/30">
+              <div class="flex items-center space-x-3">
+                <span class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 flex items-center justify-center font-bold text-sm"
+                      x-text="index + 1"></span>
+                <img :src="'https://flagsapi.com/' + $store.app.getCountryCode(currency) + '/flat/64.png'" class="w-8 h-8 rounded-full">
+                <span class="font-bold text-gray-800 dark:text-white" x-text="currency"></span>
+              </div>
+              <span class="font-mono font-bold text-green-500" x-text="(1.0 + Math.random() * 0.5).toFixed(4)"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+      
+      <!-- Top 5 Weakest -->
+      <div class="glass rounded-3xl p-6">
+        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+          <i class="fas fa-chart-line-down text-red-500 mr-2"></i> Mata Uang Terlemah
+        </h3>
+        <div class="space-y-4">
+          <template x-for="(currency, index) in ['VND', 'IDR', 'KRW', 'JPY', 'INR']">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/30 dark:bg-gray-800/30">
+              <div class="flex items-center space-x-3">
+                <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center font-bold text-sm"
+                      x-text="index + 1"></span>
+                <img :src="'https://flagsapi.com/' + $store.app.getCountryCode(currency) + '/flat/64.png'" class="w-8 h-8 rounded-full">
+                <span class="font-bold text-gray-800 dark:text-white" x-text="currency"></span>
+              </div>
+              <span class="font-mono font-bold text-red-500" x-text="(Math.random() * 0.01).toFixed(6)"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+      <p>Currency Pro &copy; 2026 | Dasbor Perbandingan</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    AOS.init({ duration: 800, once: true });
+  </script>
+</body>
+</html>
