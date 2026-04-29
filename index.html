@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency Pro - Konverter Mata Uang Ultimate</title>
+  
+  <!-- Meta Tags -->
+  <meta name="description" content="Konverter mata uang profesional dengan kurs waktu nyata, grafik, dan analitik">
+  <meta name="keywords" content="mata uang, konverter, kurs, forex">
+  <meta property="og:title" content="Currency Pro - Konverter Mata Uang Ultimate">
+  <meta property="og:description" content="Konversi 160+ mata uang dengan kurs waktu nyata dan analitik indah">
+  <meta property="og:type" content="website">
+  
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://api.exchangerate-api.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://flagsapi.com">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.x.x/dist/chart.umd.min.js"></script>
+  
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💱</text></svg>">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1f2937" media="(prefers-color-scheme: dark)">
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen font-sans transition-colors duration-300">
+  
+  <!-- Header -->
+  <header x-data="{ mobileMenu: false }" class="glass sticky top-0 z-50 border-b border-white/20 dark:border-gray-700/50">
+    <div class="container mx-auto px-4 py-3">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <div class="flex items-center space-x-3">
+          <div class="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent typing-animation">
+            Currency Pro
+          </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center space-x-6">
+          <a href="index.html" class="text-indigo-600 dark:text-indigo-400 font-semibold">Konverter</a>
+          <a href="charts.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">Grafik</a>
+          <a href="compare.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">Bandingkan</a>
+        </nav>
+        
+        <!-- Right Section -->
+        <div class="flex items-center space-x-4">
+          <!-- Live Clock -->
+          <div class="hidden md:flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300 font-mono">
+            <i class="far fa-clock"></i>
+            <span x-text="$store.app.clock"></span>
+          </div>
+          
+          <!-- Online Status -->
+          <div class="flex items-center" :title="$store.app.isOnline ? 'Online' : 'Offline'">
+            <div class="w-3 h-3 rounded-full" :class="$store.app.isOnline ? 'bg-green-500' : 'bg-red-500'"></div>
+          </div>
+          
+          <!-- Theme Toggle -->
+          <button @click="$store.app.toggleTheme()" class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition">
+            <i class="fas" :class="$store.app.theme === 'dark' ? 'fa-sun text-yellow-400' : 'fa-moon text-indigo-600'"></i>
+          </button>
+          
+          <!-- Mobile Menu -->
+          <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50">
+            <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Mobile Menu -->
+      <div x-show="mobileMenu" x-transition class="md:hidden mt-4 pb-4 space-y-2">
+        <a href="index.html" class="block py-2 px-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">Konverter</a>
+        <a href="charts.html" class="block py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Grafik</a>
+        <a href="compare.html" class="block py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">Bandingkan</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main x-data class="container mx-auto px-4 py-8 page-enter">
+    
+    <!-- Loading Skeleton -->
+    <div x-show="$store.app.isLoading" class="space-y-6">
+      <div class="skeleton h-96 rounded-3xl"></div>
+    </div>
+    
+    <!-- Converter Section -->
+    <div x-show="!$store.app.isLoading" x-transition>
+      
+      <!-- Main Converter Card -->
+      <div class="max-w-4xl mx-auto">
+        <div class="animated-gradient-border" data-aos="zoom-in">
+          <div class="inner p-8 md:p-12">
+            
+            <!-- Card Header -->
+            <div class="text-center mb-10">
+              <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                Konverter Mata Uang
+              </h1>
+              <p class="text-gray-500 dark:text-gray-400">
+                Kurs waktu nyata untuk <span class="font-semibold text-indigo-600 dark:text-indigo-400">160+</span> mata uang
+              </p>
+              <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                Mendukung semua pasangan: USD→IDR, IDR→JPY, USD→EUR, JPY→IDR, dan lainnya
+              </p>
+            </div>
+            
+            <!-- Popular Pairs Quick Select -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8" data-aos="fade-up">
+              <p class="w-full text-center text-sm text-gray-500 mb-2">Pasangan Populer:</p>
+              <button @click="$store.app.fromCurrency = 'USD'; $store.app.toCurrency = 'IDR'; $store.app.updateConversion()" 
+                      class="px-4 py-2 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 transition text-sm font-semibold click-ripple">
+                USD → IDR
+              </button>
+              <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'USD'; $store.app.updateConversion()" 
+                      class="px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition text-sm font-semibold click-ripple">
+                IDR → USD
+              </button>
+              <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'JPY'; $store.app.updateConversion()" 
+                      class="px-4 py-2 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 transition text-sm font-semibold click-ripple">
+                IDR → JPY
+              </button>
+              <button @click="$store.app.fromCurrency = 'JPY'; $store.app.toCurrency = 'IDR'; $store.app.updateConversion()" 
+                      class="px-4 py-2 rounded-xl bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 hover:bg-pink-100 transition text-sm font-semibold click-ripple">
+                JPY → IDR
+              </button>
+              <button @click="$store.app.fromCurrency = 'USD'; $store.app.toCurrency = 'EUR'; $store.app.updateConversion()" 
+                      class="px-4 py-2 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-100 transition text-sm font-semibold click-ripple">
+                USD → EUR
+              </button>
+              <button @click="$store.app.fromCurrency = 'SGD'; $store.app.toCurrency = 'IDR'; $store.app.updateConversion()" 
+                      class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition text-sm font-semibold click-ripple">
+                SGD → IDR
+              </button>
+            </div>
+            
+            <!-- From Currency -->
+            <div class="mb-8">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">Dari</label>
+                <button @click="$store.app.showFromDropdown = !$store.app.showFromDropdown" class="text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">
+                  Ubah <i class="fas fa-chevron-down ml-1"></i>
+                </button>
+              </div>
+              
+              <!-- Currency Selector Dropdown -->
+              <div x-show="$store.app.showFromDropdown" @click.away="$store.app.showFromDropdown = false" 
+                   x-transition:enter="transition ease-out duration-200"
+                   x-transition:enter-start="opacity-0 translate-y-2"
+                   x-transition:enter-end="opacity-100 translate-y-0"
+                   class="glass rounded-2xl p-4 mb-4 max-h-64 overflow-y-auto">
+                <input type="text" x-model="$store.app.searchFrom" placeholder="Search currency..." 
+                       class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                
+                <!-- Popular Pairs with IDR -->
+                <div class="mb-3" x-show="!$store.app.searchFrom">
+                  <p class="text-xs text-gray-500 mb-2">Pasangan Populer dengan IDR</p>
+                  <div class="flex flex-wrap gap-2">
+                    <button @click="$store.app.fromCurrency = 'USD'; $store.app.toCurrency = 'IDR'; $store.app.showFromDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 text-xs font-semibold">
+                      USD→IDR
+                    </button>
+                    <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'USD'; $store.app.showFromDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-xs font-semibold">
+                      IDR→USD
+                    </button>
+                    <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'JPY'; $store.app.showFromDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 text-xs font-semibold">
+                      IDR→JPY
+                    </button>
+                    <button @click="$store.app.fromCurrency = 'SGD'; $store.app.toCurrency = 'IDR'; $store.app.showFromDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 text-xs font-semibold">
+                      SGD→IDR
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Recent Currencies -->
+                <div x-show="$store.app.recentCurrencies.length > 0 && !$store.app.searchFrom" class="mb-3">
+                  <p class="text-xs text-gray-500 mb-2">Terakhir Digunakan</p>
+                  <div class="flex flex-wrap gap-2">
+                    <template x-for="code in $store.app.recentCurrencies" :key="code">
+                      <button @click="$store.app.fromCurrency = code; $store.app.showFromDropdown = false; $store.app.addToRecent(code); $store.app.updateConversion()" 
+                              class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-800/30 transition">
+                        <img :src="'https://flagsapi.com/' + $store.app.getCountryCode(code) + '/flat/64.png'" class="flag-icon" width="24" height="24">
+                        <span class="text-sm font-semibold" x-text="code"></span>
+                      </button>
+                    </template>
+                  </div>
+                </div>
+                
+                <!-- Popular Pairs with IDR -->
+                <div class="mb-3" x-show="!$store.app.searchTo">
+                  <p class="text-xs text-gray-500 mb-2">Pasangan Populer dengan IDR</p>
+                  <div class="flex flex-wrap gap-2">
+                    <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'USD'; $store.app.showToDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-xs font-semibold">
+                      IDR→USD
+                    </button>
+                    <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'JPY'; $store.app.showToDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 text-xs font-semibold">
+                      IDR→JPY
+                    </button>
+                    <button @click="$store.app.fromCurrency = 'IDR'; $store.app.toCurrency = 'EUR'; $store.app.showToDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 text-xs font-semibold">
+                      IDR→EUR
+                    </button>
+                    <button @click="$store.app.fromCurrency = 'SGD'; $store.app.toCurrency = 'IDR'; $store.app.showToDropdown = false; $store.app.updateConversion()" 
+                            class="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 text-xs font-semibold">
+                      SGD→IDR
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Currency List -->
+                <div class="space-y-1">
+                  <template x-for="currency in $store.app.getFilteredCurrencies($store.app.searchTo)" :key="currency.code">
+                    <button @click="$store.app.toCurrency = currency.code; $store.app.showToDropdown = false; $store.app.addToRecent(currency.code); $store.app.updateConversion()" 
+                            class="flex items-center justify-between w-full px-3 py-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition group">
+                      <div class="flex items-center space-x-3">
+                        <img :src="currency.flag" class="flag-icon lazy" width="32" height="32" loading="lazy">
+                        <div class="text-left">
+                          <div class="font-semibold text-gray-800 dark:text-white" x-text="currency.code"></div>
+                          <div class="text-xs text-gray-500" x-text="currency.name"></div>
+                        </div>
+                      </div>
+                      <i class="fas fa-star" :class="$store.app.favorites.includes(currency.code) ? 'text-yellow-400' : 'text-transparent group-hover:text-gray-300'"></i>
+                    </button>
+                  </template>
+                </div>
+              </div>
+                      </div>
+                      <button @click.stop="$store.app.toggleFavorite(currency.code)" class="opacity-0 group-hover:opacity-100 transition">
+                        <i class="fas fa-star" :class="$store.app.favorites.includes(currency.code) ? 'text-yellow-400' : 'text-gray-300'"></i>
+                      </button>
+                    </button>
+                  </template>
+                </div>
+              </div>
+              
+              <!-- Amount Input -->
+              <div class="floating-label">
+                <input type="number" x-model="$store.app.amount" @input="$store.app.updateConversion()" 
+                       placeholder=" " min="0.01" max="999999999.99" step="0.01"
+                       class="w-full px-4 py-4 text-3xl md:text-4xl font-bold bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-indigo-500 focus:outline-none dark:text-white font-mono">
+                <label class="flex items-center space-x-2">
+                  <img :src="'https://flagsapi.com/' + $store.app.getCountryCode($store.app.fromCurrency) + '/flat/64.png'" class="flag-icon" width="28" height="28">
+                  <span x-text="$store.app.fromCurrency"></span>
+                </label>
+              </div>
+              </div>
+              
+              <!-- Amount Input -->
+              <div class="floating-label">
+                <input type="number" x-model="$store.app.amount" @input="$store.app.updateConversion()" 
+                       placeholder=" " min="0.01" max="999999999.99" step="0.01"
+                       class="w-full px-4 py-4 text-3xl md:text-4xl font-bold bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-indigo-500 focus:outline-none dark:text-white font-mono">
+                <label class="flex items-center space-x-2">
+                  <img :src="'https://flagsapi.com/' + $store.app.getCountryCode($store.app.fromCurrency) + '/flat/64.png'" class="flag-icon" width="28" height="28">
+                  <span x-text="$store.app.fromCurrency"></span>
+                </label>
+              </div>
+              
+              <!-- Quick Amount Buttons -->
+              <div class="flex flex-wrap gap-2 mt-4">
+                <button @click="$store.app.amount = Math.min(999999999.99, $store.app.amount + 100000); $store.app.updateConversion()" 
+                        class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/30 transition text-sm font-semibold click-ripple">
+                  +100rb
+                </button>
+                <button @click="$store.app.amount = Math.min(999999999.99, $store.app.amount + 500000); $store.app.updateConversion()" 
+                        class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/30 transition text-sm font-semibold click-ripple">
+                  +500rb
+                </button>
+                <button @click="$store.app.amount = Math.min(999999999.99, $store.app.amount + 1000000); $store.app.updateConversion()" 
+                        class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/30 transition text-sm font-semibold click-ripple">
+                  +1jt
+                </button>
+                <button @click="$store.app.amount = Math.min(999999999.99, $store.app.amount + 10000000); $store.app.updateConversion()" 
+                        class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/30 transition text-sm font-semibold click-ripple">
+                  +10jt
+                </button>
+              </div>
+              
+              <!-- Range Slider -->
+              <input type="range" x-model="$store.app.amount" @input="$store.app.updateConversion()"
+                     min="0" max="1000000" step="100"
+                     class="w-full mt-4 accent-indigo-600 cursor-pointer">
+            </div>
+            
+            <!-- Swap Button -->
+            <div class="flex justify-center my-8">
+              <button @click="$store.app.swapCurrencies()" 
+                      class="swap-3d w-16 h-16 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition neon-glow click-ripple">
+                <i class="fas fa-exchange-alt text-2xl"></i>
+              </button>
+            </div>
+            
+            <!-- To Currency -->
+            <div class="mb-8">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">Ke</label>
+                <button @click="$store.app.showToDropdown = !$store.app.showToDropdown" class="text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">
+                  Ubah <i class="fas fa-chevron-down ml-1"></i>
+                </button>
+              </div>
+              
+              <!-- Currency Selector Dropdown -->
+              <div x-show="$store.app.showToDropdown" @click.away="$store.app.showToDropdown = false" 
+                   x-transition class="glass rounded-2xl p-4 mb-4 max-h-64 overflow-y-auto">
+                <input type="text" x-model="$store.app.searchTo" placeholder="Search currency..." 
+                       class="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                
+                <div class="space-y-1">
+                  <template x-for="currency in $store.app.getFilteredCurrencies($store.app.searchTo)" :key="currency.code">
+                    <button @click="$store.app.toCurrency = currency.code; $store.app.showToDropdown = false; $store.app.addToRecent(currency.code); $store.app.updateConversion()" 
+                            class="flex items-center justify-between w-full px-3 py-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition group">
+                      <div class="flex items-center space-x-3">
+                        <img :src="currency.flag" class="flag-icon lazy" width="32" height="32" loading="lazy">
+                        <div class="text-left">
+                          <div class="font-semibold text-gray-800 dark:text-white" x-text="currency.code"></div>
+                          <div class="text-xs text-gray-500" x-text="currency.name"></div>
+                        </div>
+                      </div>
+                      <i class="fas fa-star" :class="$store.app.favorites.includes(currency.code) ? 'text-yellow-400' : 'text-transparent group-hover:text-gray-300'"></i>
+                    </button>
+                  </template>
+                </div>
+              </div>
+              
+              <!-- Result Display -->
+              <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-6 border-2 border-indigo-100 dark:border-indigo-800">
+                <div class="flex items-center space-x-3 mb-2">
+                  <img :src="'https://flagsapi.com/' + $store.app.getCountryCode($store.app.toCurrency) + '/flat/64.png'" class="flag-icon" width="32" height="32">
+                  <span class="text-lg font-semibold text-gray-600 dark:text-gray-300" x-text="$store.app.toCurrency"></span>
+                </div>
+                <div class="text-4xl md:text-5xl font-extrabold text-gray-800 dark:text-white font-mono count-up" 
+                     x-text="$store.app.formatNumber($store.app.convertedAmount)">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rate Details -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div class="bg-white/50 dark:bg-gray-800/50 rounded-xl p-4">
+                <p class="text-sm text-gray-500 mb-1">Kurs Tukar</p>
+                <p class="text-lg font-bold text-gray-800 dark:text-white font-mono">
+                  1 <span x-text="$store.app.fromCurrency"></span> = 
+                  <span x-text="$store.app.rate.toFixed(4)"></span> <span x-text="$store.app.toCurrency"></span>
+                </p>
+              </div>
+              <div class="bg-white/50 dark:bg-gray-800/50 rounded-xl p-4">
+                <p class="text-sm text-gray-500 mb-1">Kurs Terbalik</p>
+                <p class="text-lg font-bold text-gray-800 dark:text-white font-mono">
+                  1 <span x-text="$store.app.toCurrency"></span> = 
+                  <span x-text="$store.app.inverseRate.toFixed(4)"></span> <span x-text="$store.app.fromCurrency"></span>
+                </p>
+              </div>
+            </div>
+            
+            <!-- Last Updated -->
+            <div class="flex items-center justify-between text-sm text-gray-500">
+              <div class="flex items-center space-x-2">
+                <i class="far fa-clock"></i>
+                <span>Terakhir diperbarui: <span x-text="$store.app.lastUpdated ? new Date($store.app.lastUpdated).toLocaleTimeString('id-ID') : 'Belum pernah'"></span></span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <i class="fas fa-sync-alt" :class="$store.app.countdown < 60 ? 'text-red-500' : ''"></i>
+                <span>Refresh dalam: <span x-text="$store.app.countdown"></span>dtk</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Popular Pairs Live Rates -->
+        <div class="max-w-4xl mx-auto mt-12" data-aos="fade-up">
+          <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Kurs Populer Hari Ini</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <template x-for="pair in [
+              {from: 'USD', to: 'IDR', label: 'USD/IDR'},
+              {from: 'IDR', to: 'USD', label: 'IDR/USD'},
+              {from: 'IDR', to: 'JPY', label: 'IDR/JPY'},
+              {from: 'JPY', to: 'IDR', label: 'JPY/IDR'},
+              {from: 'USD', to: 'EUR', label: 'USD/EUR'},
+              {from: 'SGD', to: 'IDR', label: 'SGD/IDR'}
+            ]">
+              <div @click="$store.app.fromCurrency = pair.from; $store.app.toCurrency = pair.to; $store.app.updateConversion()" 
+                   class="glass rounded-xl p-4 hover:bg-white/40 dark:hover:bg-gray-700/40 cursor-pointer transition click-ripple">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-semibold text-gray-600 dark:text-gray-300" x-text="pair.label"></span>
+                  <i class="fas fa-exchange-alt text-indigo-500 text-xs"></i>
+                </div>
+                <div class="text-lg font-bold text-gray-800 dark:text-white font-mono" 
+                     x-text="$store.app.rates[pair.from] && $store.app.rates[pair.to] ? ($store.app.rates[pair.to] / $store.app.rates[pair.from]).toFixed(4) : '-'"></div>
+                <div class="text-xs text-gray-400 mt-1">Klik untuk konversi</div>
+              </div>
+            </template>
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mt-8" data-aos="fade-up">
+          <button @click="$store.app.copyToClipboard()" class="flex items-center space-x-2 px-6 py-3 rounded-xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition click-ripple">
+            <i class="fas fa-copy text-indigo-600"></i>
+            <span>Salin Hasil</span>
+          </button>
+          <button @click="$store.app.downloadResult()" class="flex items-center space-x-2 px-6 py-3 rounded-xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition click-ripple">
+            <i class="fas fa-download text-green-600"></i>
+            <span>Unduh</span>
+          </button>
+          <button @click="$store.app.generateQR()" class="flex items-center space-x-2 px-6 py-3 rounded-xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition click-ripple">
+            <i class="fas fa-qrcode text-purple-600"></i>
+            <span>Kode QR</span>
+          </button>
+        </div>
+        
+        <!-- QR Code Display -->
+        <div id="qr-code" class="flex justify-center mt-6"></div>
+        
+        <!-- Keyboard Shortcuts Info -->
+        <div class="text-center mt-8 text-sm text-gray-400" data-aos="fade-up">
+          <p>Pintasan keyboard: <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">Alt+S</kbd> Tukar, 
+          <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">Alt+C</kbd> Salin, 
+          <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">Alt+R</kbd> Reset, 
+          <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">Alt+D</kbd> Mode Gelap</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Comprehensive Currency Pairs Table -->
+    <div class="max-w-6xl mx-auto mt-16 mb-8" data-aos="fade-up">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-8 text-center">Tabel Konversi Lengkap (vs IDR)</h2>
+      <div class="glass rounded-3xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-white/30 dark:bg-gray-800/30">
+              <tr>
+                <th class="px-6 py-4 text-left text-sm font-bold text-gray-600 dark:text-gray-300">Pasangan</th>
+                <th class="px-6 py-4 text-right text-sm font-bold text-gray-600 dark:text-gray-300">Kurs</th>
+                <th class="px-6 py-4 text-center text-sm font-bold text-gray-600 dark:text-gray-300">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <template x-for="pair in [
+                {from: 'USD', to: 'IDR', label: 'USD → IDR'},
+                {from: 'IDR', to: 'USD', label: 'IDR → USD'},
+                {from: 'IDR', to: 'JPY', label: 'IDR → JPY'},
+                {from: 'JPY', to: 'IDR', label: 'JPY → IDR'},
+                {from: 'IDR', to: 'EUR', label: 'IDR → EUR'},
+                {from: 'EUR', to: 'IDR', label: 'EUR → IDR'},
+                {from: 'SGD', to: 'IDR', label: 'SGD → IDR'},
+                {from: 'IDR', to: 'SGD', label: 'IDR → SGD'},
+                {from: 'IDR', to: 'CNY', label: 'IDR → CNY'},
+                {from: 'CNY', to: 'IDR', label: 'CNY → IDR'}
+              ]">
+                <tr class="hover:bg-white/20 dark:hover:bg-gray-800/20 transition cursor-pointer"
+                    @click="$store.app.fromCurrency = pair.from; $store.app.toCurrency = pair.to; $store.app.updateConversion(); window.scrollTo({top:0, behavior:'smooth'})">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center space-x-3">
+                      <img :src="'https://flagsapi.com/' + $store.app.getCountryCode(pair.from) + '/flat/64.png'" class="w-6 h-6 rounded-full">
+                      <span class="font-bold text-gray-800 dark:text-white" x-text="pair.label"></span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-right font-mono font-bold text-gray-800 dark:text-white"
+                      x-text="$store.app.rates[pair.from] && $store.app.rates[pair.to] ? ($store.app.rates[pair.to] / $store.app.rates[pair.from]).toFixed(4) : '-'"></td>
+                  <td class="px-6 py-4 text-center">
+                    <button class="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-semibold hover:scale-105 transition">
+                      Pilih
+                    </button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+        Klik baris tabel untuk langsung melakukan konversi
+      </p>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+      <p>Currency Pro &copy; 2026 | Kurs waktu nyata dari berbagai sumber</p>
+      <p class="mt-2">Dibuat dengan <i class="fas fa-heart text-red-500"></i> menggunakan Tailwind CSS, Alpine.js & Chart.js</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+  <script>
+    // Initialize AOS
+    AOS.init({ duration: 800, once: true });
+    
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .catch(err => console.log('SW registration failed:', err));
+    }
+  </script>
+</body>
+</html>
